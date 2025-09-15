@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài tập từ vựng tiếng Anh cho bé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Playful & Bright -->
+    <!-- Application Structure Plan: The application is structured as a single-page interactive worksheet with a clear navigation bar to switch between four distinct, game-like exercises (Matching, Fill-in-the-blanks, Word Search, Tracing). This task-oriented design was chosen because it provides a clear, guided learning path for children, making it easy for them to understand what to do next and preventing them from feeling overwhelmed. Each exercise is a self-contained section, allowing kids to focus on one skill at a time (recognition, spelling, writing) and receive immediate feedback, which is crucial for engagement and effective learning in this age group. -->
+    <!-- Visualization & Content Choices: 
+    - Vocabulary List -> Goal: Inform/Introduce -> Presentation: Icon + Text Cards -> Interaction: Click for feedback (future audio) -> Justification: Visually appealing and simple introduction to the words.
+    - Exercise 1 (Matching) -> Goal: Test Recognition -> Presentation: Two columns (words and icons) -> Interaction: Drag-and-drop words onto icons -> Justification: Kinesthetic and interactive way to test association, more engaging than drawing lines. Method: Native HTML Drag & Drop API.
+    - Exercise 2 (Fill Blanks) -> Goal: Test Spelling -> Presentation: Words with input fields for missing letters -> Interaction: User types letters, clicks a button for validation -> Justification: Direct and effective way to practice spelling with immediate correction. Method: HTML forms and JS.
+    - Exercise 3 (Word Search) -> Goal: Reinforce Recognition -> Presentation: HTML grid of letters -> Interaction: Click and drag to select words -> Justification: A fun, puzzle-like activity that reinforces word shapes and spelling in a low-pressure environment. Method: JS mouse events on an HTML grid.
+    - Exercise 4 (Tracing) -> Goal: Practice Writing -> Presentation: Dotted-line text on a canvas -> Interaction: User draws on the canvas with mouse/touch -> Justification: Mimics the physical act of writing, developing motor skills along with spelling. Method: HTML Canvas API.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+        }
+        .word-search-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            user-select: none;
+        }
+        .letter-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1 / 1;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .letter-cell.selected {
+            background-color: #fcd34d; /* amber-300 */
+            color: #1f2937; /* gray-800 */
+        }
+        .letter-cell.found {
+            background-color: #4ade80; /* green-400 */
+            color: #1f2937; /* gray-800 */
+        }
+        .draggable {
+            touch-action: none;
+            cursor: grab;
+        }
+        .drop-target {
+            border: 2px dashed #9ca3af; /* gray-400 */
+        }
+        .drop-target.drag-over {
+            background-color: #d1fae5; /* green-100 */
+            border-color: #10b981; /* green-500 */
+        }
+        .tracing-canvas {
+            border: 2px dashed #9ca3af;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="bg-amber-50 text-stone-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-teal-600">Học từ vựng thật vui!</h1>
+            <p class="text-lg text-stone-600 mt-2">Cùng ôn lại các đồ dùng học tập nhé!</p>
+        </header>
+
+        <nav class="flex justify-center flex-wrap gap-2 md:gap-4 mb-8">
+            <button onclick="showSection('vocab')" class="nav-btn active bg-teal-500 text-white px-4 py-2 rounded-full font-semibold shadow-md">Từ vựng</button>
+            <button onclick="showSection('exercise1')" class="nav-btn bg-white text-teal-600 px-4 py-2 rounded-full font-semibold shadow-md">Bài tập 1</button>
+            <button onclick="showSection('exercise2')" class="nav-btn bg-white text-teal-600 px-4 py-2 rounded-full font-semibold shadow-md">Bài tập 2</button>
+            <button onclick="showSection('exercise3')" class="nav-btn bg-white text-teal-600 px-4 py-2 rounded-full font-semibold shadow-md">Bài tập 3</button>
+            <button onclick="showSection('exercise4')" class="nav-btn bg-white text-teal-600 px-4 py-2 rounded-full font-semibold shadow-md">Bài tập 4</button>
+        </nav>
+
+        <main>
+            <!-- Vocabulary Section -->
+            <section id="vocab" class="content-section">
+                <h2 class="text-2xl font-bold text-center text-rose-600 mb-6">Bảng từ vựng</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="vocab-card bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-5xl mb-2">📏</div>
+                        <h3 class="text-xl font-bold">Ruler</h3>
+                        <p class="text-stone-500">thước kẻ</p>
+                    </div>
+                    <div class="vocab-card bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-5xl mb-2">🧼</div>
+                        <h3 class="text-xl font-bold">Rubber</h3>
+                        <p class="text-stone-500">cục tẩy</p>
+                    </div>
+                    <div class="vocab-card bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-5xl mb-2">✒️</div>
+                        <h3 class="text-xl font-bold">Pen</h3>
+                        <p class="text-stone-500">bút mực</p>
+                    </div>
+                    <div class="vocab-card bg-white p-4 rounded-lg shadow-md text-center">
+                        <div class="text-5xl mb-2">✏️</div>
+                        <h3 class="text-xl font-bold">Pencil</h3>
+                        <p class="text-stone-500">bút chì</p>
+                    </div>
+                     <div class="vocab-card bg-white p-4 rounded-lg shadow-md text-center col-span-2 md:col-span-1 lg:col-span-1">
+                        <div class="text-5xl mb-2">🖍️</div>
+                        <h3 class="text-xl font-bold">Crayon</h3>
+                        <p class="text-stone-500">bút màu</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Exercise 1: Matching -->
+            <section id="exercise1" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-center text-rose-600 mb-2">Bài tập 1: Nối từ vựng với tranh</h2>
+                 <p class="text-center text-stone-600 mb-6">Kéo từ ở cột bên trái thả vào đúng ô hình bên phải.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div id="words-container" class="flex flex-col gap-4 items-center">
+                        <div id="ruler" draggable="true" class="draggable bg-white p-3 rounded-lg shadow-md text-xl w-40 text-center">Ruler</div>
+                        <div id="rubber" draggable="true" class="draggable bg-white p-3 rounded-lg shadow-md text-xl w-40 text-center">Rubber</div>
+                        <div id="pen" draggable="true" class="draggable bg-white p-3 rounded-lg shadow-md text-xl w-40 text-center">Pen</div>
+                        <div id="pencil" draggable="true" class="draggable bg-white p-3 rounded-lg shadow-md text-xl w-40 text-center">Pencil</div>
+                        <div id="crayon" draggable="true" class="draggable bg-white p-3 rounded-lg shadow-md text-xl w-40 text-center">Crayon</div>
+                    </div>
+                    <div id="images-container" class="flex flex-col gap-4 items-center">
+                        <div data-word="pencil" class="drop-target bg-white w-40 h-24 rounded-lg flex justify-center items-center text-5xl">✏️</div>
+                        <div data-word="crayon" class="drop-target bg-white w-40 h-24 rounded-lg flex justify-center items-center text-5xl">🖍️</div>
+                        <div data-word="ruler" class="drop-target bg-white w-40 h-24 rounded-lg flex justify-center items-center text-5xl">📏</div>
+                        <div data-word="pen" class="drop-target bg-white w-40 h-24 rounded-lg flex justify-center items-center text-5xl">✒️</div>
+                        <div data-word="rubber" class="drop-target bg-white w-40 h-24 rounded-lg flex justify-center items-center text-5xl">🧼</div>
+                    </div>
+                </div>
+                 <div id="feedback-ex1" class="text-center mt-4 font-bold text-2xl"></div>
+            </section>
+
+            <!-- Exercise 2: Fill in the blanks -->
+            <section id="exercise2" class="content-section hidden">
+                 <h2 class="text-2xl font-bold text-center text-rose-600 mb-2">Bài tập 2: Điền từ bị thiếu</h2>
+                 <p class="text-center text-stone-600 mb-6">Hãy điền các chữ cái còn thiếu vào ô trống.</p>
+                <div class="space-y-4 max-w-sm mx-auto">
+                    <div class="fill-blank-item flex items-center justify-center gap-1 text-2xl font-mono" data-answer="RULER">
+                        <span>R</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>L</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>R</span>
+                    </div>
+                    <div class="fill-blank-item flex items-center justify-center gap-1 text-2xl font-mono" data-answer="RUBBER">
+                        <span>R</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>B</span><span>B</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>R</span>
+                    </div>
+                    <div class="fill-blank-item flex items-center justify-center gap-1 text-2xl font-mono" data-answer="PEN">
+                        <span>P</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>N</span>
+                    </div>
+                    <div class="fill-blank-item flex items-center justify-center gap-1 text-2xl font-mono" data-answer="PENCIL">
+                        <span>P</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>N</span><span>C</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>L</span>
+                    </div>
+                    <div class="fill-blank-item flex items-center justify-center gap-1 text-2xl font-mono" data-answer="CRAYON">
+                        <span>C</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded"><span>A</span><span>Y</span><span>O</span><input maxlength="1" class="w-8 h-8 text-center border-2 rounded">
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="checkFillBlanks()" class="bg-amber-500 text-white px-6 py-2 rounded-full font-semibold shadow-md hover:bg-amber-600">Kiểm tra</button>
+                </div>
+            </section>
+
+            <!-- Exercise 3: Word Search -->
+            <section id="exercise3" class="content-section hidden">
+                 <h2 class="text-2xl font-bold text-center text-rose-600 mb-2">Bài tập 3: Khoanh tròn từ vựng</h2>
+                 <p class="text-center text-stone-600 mb-6">Tìm các từ: Ruler, Rubber, Pen, Pencil, Crayon.</p>
+                <div class="flex justify-center">
+                     <div class="word-search-grid p-4 bg-white rounded-lg shadow-md w-full max-w-sm"></div>
+                </div>
+                 <div id="found-words" class="text-center mt-4 text-lg"></div>
+            </section>
+
+            <!-- Exercise 4: Tracing -->
+            <section id="exercise4" class="content-section hidden">
+                 <h2 class="text-2xl font-bold text-center text-rose-600 mb-2">Bài tập 4: Viết theo nét</h2>
+                 <p class="text-center text-stone-600 mb-6">Dùng chuột hoặc ngón tay để viết theo các từ bên dưới.</p>
+                <div class="flex flex-col items-center gap-4">
+                     <div class="flex justify-center gap-2 mb-2">
+                        <button id="trace-word-btn" data-word="Ruler" class="trace-btn bg-white border-2 border-teal-500 text-teal-600 px-3 py-1 rounded-full text-sm">Ruler</button>
+                        <button id="trace-word-btn" data-word="Rubber" class="trace-btn bg-white border-2 border-teal-500 text-teal-600 px-3 py-1 rounded-full text-sm">Rubber</button>
+                        <button id="trace-word-btn" data-word="Pen" class="trace-btn bg-white border-2 border-teal-500 text-teal-600 px-3 py-1 rounded-full text-sm">Pen</button>
+                        <button id="trace-word-btn" data-word="Pencil" class="trace-btn bg-white border-2 border-teal-500 text-teal-600 px-3 py-1 rounded-full text-sm">Pencil</button>
+                        <button id="trace-word-btn" data-word="Crayon" class="trace-btn bg-white border-2 border-teal-500 text-teal-600 px-3 py-1 rounded-full text-sm">Crayon</button>
+                    </div>
+                    <canvas id="tracingCanvas" class="tracing-canvas bg-white"></canvas>
+                    <button onclick="clearCanvas()" class="bg-rose-500 text-white px-6 py-2 rounded-full font-semibold shadow-md hover:bg-rose-600">Xóa</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const sections = document.querySelectorAll('.content-section');
+        const navBtns = document.querySelectorAll('.nav-btn');
+
+        function showSection(id) {
+            sections.forEach(section => {
+                if (section.id === id) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+            navBtns.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(id)) {
+                    btn.classList.add('active', 'bg-teal-500', 'text-white');
+                    btn.classList.remove('bg-white', 'text-teal-600');
+                } else {
+                    btn.classList.remove('active', 'bg-teal-500', 'text-white');
+                    btn.classList.add('bg-white', 'text-teal-600');
+                }
+            });
+        }
+
+        // Exercise 1: Drag and Drop
+        const draggables = document.querySelectorAll('.draggable');
+        const dropTargets = document.querySelectorAll('.drop-target');
+        let correctMatches = 0;
+
+        draggables.forEach(draggable => {
+            draggable.addEventListener('dragstart', () => {
+                draggable.classList.add('opacity-50');
+            });
+
+            draggable.addEventListener('dragend', () => {
+                draggable.classList.remove('opacity-50');
+            });
+        });
+
+        dropTargets.forEach(target => {
+            target.addEventListener('dragover', e => {
+                e.preventDefault();
+                target.classList.add('drag-over');
+            });
+
+            target.addEventListener('dragleave', () => {
+                target.classList.remove('drag-over');
+            });
+
+            target.addEventListener('drop', e => {
+                e.preventDefault();
+                target.classList.remove('drag-over');
+                const droppedId = e.dataTransfer.getData('text/plain');
+                const droppedElement = document.getElementById(droppedId);
+
+                if (target.dataset.word === droppedId) {
+                    target.innerHTML = '';
+                    target.appendChild(droppedElement);
+                    droppedElement.setAttribute('draggable', 'false');
+                    droppedElement.classList.remove('draggable');
+                    droppedElement.style.cursor = 'default';
+                    target.style.borderColor = '#4ade80';
+                    target.style.borderStyle = 'solid';
+                    correctMatches++;
+                    if (correctMatches === 5) {
+                        document.getElementById('feedback-ex1').textContent = '🎉 Giỏi quá! Bé đã hoàn thành! 🎉';
+                         document.getElementById('feedback-ex1').style.color = '#10b981';
+                    }
+                } else {
+                    const feedback = document.getElementById('feedback-ex1');
+                    feedback.textContent = 'Chưa đúng rồi, thử lại nhé!';
+                    feedback.style.color = '#ef4444';
+                    setTimeout(() => feedback.textContent = '', 2000);
+                }
+            });
+        });
+        
+        document.addEventListener('dragstart', function(event) {
+            if (event.target.classList.contains('draggable')) {
+                event.dataTransfer.setData('text/plain', event.target.id);
+            }
+        });
+
+        // Exercise 2: Fill Blanks
+        function checkFillBlanks() {
+            const items = document.querySelectorAll('.fill-blank-item');
+            items.forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                const answer = item.dataset.answer;
+                let userAnswer = '';
+                
+                const spans = item.querySelectorAll('span');
+                let constructedWord = '';
+                let inputIndex = 0;
+                let spanIndex = 0;
+
+                while (inputIndex < inputs.length || spanIndex < spans.length) {
+                    const nextSpan = item.children[spanIndex + inputIndex];
+                    const nextInput = item.children[spanIndex + inputIndex];
+
+                    if (nextSpan && nextSpan.tagName === 'SPAN') {
+                        constructedWord += nextSpan.textContent;
+                        spanIndex++;
+                    } else if (nextInput && nextInput.tagName === 'INPUT') {
+                        constructedWord += nextInput.value.toUpperCase();
+                        inputIndex++;
+                    } else {
+                        break;
+                    }
+                }
+
+                inputs.forEach((input, index) => {
+                    const letterIndex = Array.from(item.children).indexOf(input);
+                    if (constructedWord.toUpperCase() === answer) {
+                        input.style.borderColor = '#4ade80'; // green-400
+                    } else {
+                        input.style.borderColor = '#f87171'; // red-400
+                    }
+                });
+            });
+        }
+        
+        // Exercise 3: Word Search
+        const wordsToFind = ["RULER", "RUBBER", "PEN", "PENCIL", "CRAYON"];
+        const gridLetters = [
+            'R', 'U', 'L', 'E', 'R', 'F', 'G',
+            'S', 'R', 'E', 'B', 'B', 'U', 'R',
+            'H', 'C', 'R', 'A', 'Y', 'O', 'N',
+            'P', 'E', 'N', 'C', 'I', 'L', 'O',
+            'X', 'Y', 'Z', 'P', 'E', 'N', 'A',
+            'Q', 'W', 'E', 'R', 'T', 'Y', 'U',
+            'I', 'O', 'P', 'A', 'S', 'D', 'F'
+        ];
+        const gridContainer = document.querySelector('.word-search-grid');
+        let isMouseDown = false;
+        let selectedCells = [];
+        let foundWords = [];
+
+        function createGrid() {
+            gridContainer.innerHTML = '';
+            for (let i = 0; i < gridLetters.length; i++) {
+                const cell = document.createElement('div');
+                cell.textContent = gridLetters[i];
+                cell.classList.add('letter-cell');
+                cell.dataset.index = i;
+                gridContainer.appendChild(cell);
+            }
+        }
+
+        gridContainer.addEventListener('mousedown', e => {
+            if (e.target.classList.contains('letter-cell')) {
+                isMouseDown = true;
+                selectedCells = [e.target];
+                e.target.classList.add('selected');
+            }
+        });
+
+        gridContainer.addEventListener('mouseover', e => {
+            if (isMouseDown && e.target.classList.contains('letter-cell') && !selectedCells.includes(e.target)) {
+                selectedCells.push(e.target);
+                e.target.classList.add('selected');
+            }
+        });
+
+        gridContainer.addEventListener('mouseup', () => {
+            if(selectedCells.length > 0) {
+                isMouseDown = false;
+                const selectedWord = selectedCells.map(cell => cell.textContent).join('');
+                const reversedWord = selectedCells.map(cell => cell.textContent).reverse().join('');
+                
+                let wordFound = false;
+                if (wordsToFind.includes(selectedWord) && !foundWords.includes(selectedWord)) {
+                    wordFound = true;
+                    foundWords.push(selectedWord);
+                } else if (wordsToFind.includes(reversedWord) && !foundWords.includes(reversedWord)) {
+                    wordFound = true;
+                    foundWords.push(reversedWord);
+                }
+
+                if (wordFound) {
+                    selectedCells.forEach(cell => {
+                        cell.classList.remove('selected');
+                        cell.classList.add('found');
+                    });
+                    updateFoundWordsDisplay();
+                } else {
+                     selectedCells.forEach(cell => cell.classList.remove('selected'));
+                }
+                selectedCells = [];
+            }
+        });
+        
+        document.addEventListener('mouseleave', () => {
+             if (isMouseDown) {
+                isMouseDown = false;
+                selectedCells.forEach(cell => cell.classList.remove('selected'));
+                selectedCells = [];
+            }
+        });
+
+        function updateFoundWordsDisplay() {
+            const display = document.getElementById('found-words');
+            display.innerHTML = `<strong>Đã tìm thấy:</strong> ${foundWords.join(', ')}`;
+            if(foundWords.length === wordsToFind.length) {
+                 display.innerHTML += '<br>🎉 Chúc mừng bé đã tìm thấy hết các từ! 🎉';
+            }
+        }
+
+        // Exercise 4: Tracing
+        const canvas = document.getElementById('tracingCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentWordToTrace = 'Ruler';
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, 400);
+            canvas.width = size;
+            canvas.height = size / 2;
+            drawWordOnCanvas(currentWordToTrace);
+        }
+
+        function drawWordOnCanvas(word) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = `bold ${canvas.width / 6}px 'Comic Sans MS', cursive, sans-serif`;
+            ctx.fillStyle = '#e5e7eb'; // gray-200
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(word, canvas.width / 2, canvas.height / 2);
+            ctx.strokeStyle = '#38bdf8'; // sky-400
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+        
+        function getTouchPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.touches[0].clientX - rect.left,
+                y: evt.touches[0].clientY - rect.top
+            };
+        }
+
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = e.touches ? getTouchPos(e) : getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+             const pos = e.touches ? getTouchPos(e) : getMousePos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function clearCanvas() {
+             drawWordOnCanvas(currentWordToTrace);
+        }
+        
+        document.querySelectorAll('.trace-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentWordToTrace = e.target.dataset.word;
+                drawWordOnCanvas(currentWordToTrace);
+            });
+        });
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        
+        window.addEventListener('resize', resizeCanvas);
+
+
+        // Initial setup
+        window.onload = () => {
+            createGrid();
+            resizeCanvas();
+            showSection('vocab');
+        };
+    </script>
+</body>
+</html>
